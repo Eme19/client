@@ -1,75 +1,137 @@
-import { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
- 
-const API_URL = "http://localhost:5005";
- 
- 
-function Signup(props) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [errorMessage, setErrorMessage] = useState(undefined);
- 
-  const navigate = useNavigate();
-  
-  const handleEmail = (e) => setEmail(e.target.value);
-  const handlePassword = (e) => setPassword(e.target.value);
-  const handleName = (e) => setName(e.target.value);
- 
-  
-  const handleSignupSubmit = (e) => {
-    e.preventDefault()
+import { ThemeContext } from "../context/theme.context";
+import { Input, message } from "antd";
+import authMethods from "../components/apiservices/auth.servic";
+import "./Signup.css";
 
-    const user = {name, email,password}
-    
-    axios.post(`${API_URL}/auth/signup`, user)
-        .then(response => {
-            console.log('response', response)
-            navigate("/login")
-        })
-        .catch(err => console.log(err))
+function Signup() {
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    username: "",
+    country: "",
+    state: "",
+  });
+
+  const { theme } = useContext(ThemeContext);
+  const navigate = useNavigate();
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prevForm) => ({ ...prevForm, [name]: value }));
   };
- 
-  
+
+  const handleSignupSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!form.email.includes("@")) {
+      message.error("Email must contain '@' symbol.");
+      return;
+    }
+
+    const passwordStrengthRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/;
+    if (!passwordStrengthRegex.test(form.password)) {
+      message.error("Password must have at least 6 characters, including one digit, one lowercase letter, and one uppercase letter.");
+      return;
+    }
+
+    try {
+      const user = form;
+      await authMethods.signUp(user);
+      message.success("Successfully signed up!");
+      navigate("/login");
+    } catch (error) {
+      message.error("Signup failed. Please check your credentials.");
+      console.error(error);
+    }
+  };
+
   return (
-    <div className="SignupPage">
-      <h1>Sign Up</h1>
- 
+    <div className={`signup ${theme}`}>
       <form onSubmit={handleSignupSubmit}>
-        <label>Email:</label>
-        <input 
-          type="email"
-          name="email"
-          value={email}
-          onChange={handleEmail}
-        />
- 
-        <label>Password:</label>
-        <input 
-          type="password"
-          name="password"
-          value={password}
-          onChange={handlePassword}
-        />
- 
-        <label>Name:</label>
-        <input 
-          type="text"
-          name="name"
-          value={name}
-          onChange={handleName}
-        />
- 
-        <button type="submit">Sign Up!</button>
+        <h1>Sign Up</h1>
+        <div className="inputstyle">
+          <label>Username</label>
+          <Input
+            className="input-formstyle"
+            type="text"
+            name="username"
+            value={form.username}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+
+        <div className="inputstyle">
+          <label>Email</label>
+          <Input
+            className="input-formstyle"
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+
+        <div className="inputstyle">
+          <label>Password</label>
+          <Input
+            className="input-formstyle"
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+
+        <div className="inputstyle">
+          <label>Country</label>
+          <Input
+            className="input-formstyle"
+            type="text"
+            name="country"
+            value={form.country}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+
+        <div className="inputstyle">
+          <label>State</label>
+          <Input
+            className="input-formstyle"
+            type="text"
+            name="state"
+            value={form.state}
+            onChange={handleFormChange}
+            required
+          />
+        </div>
+
+        <div>
+          <button className="btn-form" type="submit">
+            Sign Up!
+          </button>
+        </div>
       </form>
- 
-      { errorMessage && <p className="error-message">{errorMessage}</p> }
- 
-      <p>Already have account?</p>
-      <Link to={"/login"}> Login here!</Link>
+
+      <p>Already have an account? <Link to="/login">Login here!</Link></p>
     </div>
-  )
+  );
 }
- 
+
 export default Signup;
+
+
+
+
+
+
+
+
+
+
+
